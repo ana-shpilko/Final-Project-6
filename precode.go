@@ -57,7 +57,7 @@ func getAllTasks(w http.ResponseWriter, r *http.Request) {
 	// статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 func postTask(w http.ResponseWriter, r *http.Request) {
@@ -75,10 +75,14 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks[task.ID] = task
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if _, ok := tasks[task.ID]; !ok {
+		tasks[task.ID] = task
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+	} else {
+		http.Error(w, "Задача уже существует", http.StatusBadRequest)
+		return
+	}
 }
 
 func getTask(w http.ResponseWriter, r *http.Request) {
